@@ -10,6 +10,10 @@ PROJECT=$1
 
 GIT_BRANCH=production
 
+### INSTALL JQ
+sudo yum -y install https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
+sudo yum install jq -y
+
 ### COMPLY SERVER WORK
 # Install Replicated/Comply on Comply Node
 echo "About to install Replicated and Comply Application Stack."
@@ -24,9 +28,9 @@ read -rsp $"After copying the URL and password, press any key to continue..." -n
 TOKEN=`curl -s -S -k -X POST -H 'Content-Type: application/json' -d '{"login": "admin", "password": "puppetlabs"}' https://localhost:4433/rbac-api/v1/auth/token |jq -r '.token'`
 curl -s -S -k -X POST -H 'Content-Type: application/json' -H "X-Authentication: $TOKEN" https://localhost:4433/classifier-api/v1/update-classes?environment=${GIT_BRANCH}
 
-WINNODES=`curl -G -H 'Content-Type: application/json' -H "X-Authentication: $TOKEN" --data-urlencode 'query=["~","certname","win[0-9]"]' https://localhost:8081/pdb/query/v4/nodes |jq .[].certname |tr -d \"`
+WINNODES=`curl -k -G -H 'Content-Type: application/json' -H "X-Authentication: $TOKEN" --data-urlencode 'query=["~","certname","win[0-9]"]' https://localhost:8081/pdb/query/v4/nodes |jq .[].certname |tr -d \"`
 
-LINNODES=`curl -G -H 'Content-Type: application/json' -H "X-Authentication: $TOKEN" --data-urlencode 'query=["~","certname","nix[0-9]"]' https://localhost:8081/pdb/query/v4/nodes |jq .[].certname |tr -d \"`
+LINNODES=`curl -k -G -H 'Content-Type: application/json' -H "X-Authentication: $TOKEN" --data-urlencode 'query=["~","certname","nix[0-9]"]' https://localhost:8081/pdb/query/v4/nodes |jq .[].certname |tr -d \"`
 
 # Windows in Hydra is currently broken and needs to have the FQDN fixed
 for HOST in $WINNODES
